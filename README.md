@@ -1,5 +1,7 @@
 # Clean My Mac - Advanced Cleanup Tool
 
+inspired https://github.com/aviral2552/cleanmymac
+
 Clean My Mac adalah tool pembersihan canggih yang dirancang khusus untuk sistem macOS modern. Tool ini melakukan maintenance untuk komponen yang paling umum digunakan di sistem operasi dan third-party tools dengan satu perintah terminal.
 
 Clean My Mac menggunakan sistem plugin sederhana dengan semua "cleaners" terletak di direktori `cleaners`. Fungsionalitas dapat ditambah (atau dihapus) dengan menambah (atau menghapus) file di direktori tersebut.
@@ -32,7 +34,7 @@ Anda memerlukan:
 
 ### Method 1: Git Clone (Recommended)
 ```bash
-git clone https://github.com/aviral2552/cleanmymac.git
+git clone https://github.com/binsarjr/cleanmymac.git
 cd cleanmymac
 chmod +x cleanmymac.sh
 ```
