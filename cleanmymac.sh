@@ -4,7 +4,18 @@
 # =====================================
 
 # Get the directory where this script is located
-SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+# Handle both direct execution and symlink execution
+SCRIPT_PATH="${BASH_SOURCE[0]}"
+
+# Resolve symlinks to get the actual script location
+while [[ -L "$SCRIPT_PATH" ]]; do
+    SCRIPT_DIR="$(cd -P "$(dirname "$SCRIPT_PATH")" && pwd)"
+    SCRIPT_PATH="$(readlink "$SCRIPT_PATH")"
+    # Handle relative symlinks
+    [[ $SCRIPT_PATH != /* ]] && SCRIPT_PATH="$SCRIPT_DIR/$SCRIPT_PATH"
+done
+
+SCRIPT_DIR="$(cd -P "$(dirname "$SCRIPT_PATH")" && pwd)"
 CLEANERS="$SCRIPT_DIR/cleaners"
 METAMODULE="$CLEANERS/00_meta.sh"
 
