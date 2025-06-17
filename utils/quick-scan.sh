@@ -48,7 +48,7 @@ while IFS= read -r -d '' vendor_dir; do
         size=$(du -sk "$vendor_dir" 2>/dev/null | cut -f1)
         vendor_size=$((vendor_size + size))
     fi
-done < <(find "$SCAN_DIR" -type d -name "vendor" -print0 2>/dev/null)
+done < <(find "$SCAN_DIR" -type d -name "vendor" -prune -print0 2>/dev/null)
 
 if [[ $vendor_count -gt 0 ]]; then
     vendor_size_mb=$((vendor_size / 1024))
@@ -57,9 +57,15 @@ if [[ $vendor_count -gt 0 ]]; then
 fi
 
 # Count __pycache__
-pycache_count=$(find "$SCAN_DIR" -type d -name "__pycache__" 2>/dev/null | wc -l)
+pycache_count=0
+pycache_size=0
+while IFS= read -r -d '' pycache_dir; do
+    ((pycache_count++))
+    size=$(du -sk "$pycache_dir" 2>/dev/null | cut -f1)
+    pycache_size=$((pycache_size + size))
+done < <(find "$SCAN_DIR" -type d -name "__pycache__" -prune -print0 2>/dev/null)
+
 if [[ $pycache_count -gt 0 ]]; then
-    pycache_size=$(find "$SCAN_DIR" -type d -name "__pycache__" -exec du -sk {} + 2>/dev/null | awk '{sum+=$1} END {print sum}')
     pycache_size_mb=$((pycache_size / 1024))
     echo "🐍 Python: $pycache_count folders (~${pycache_size_mb}MB)"
     total_size=$((total_size + pycache_size))
@@ -81,6 +87,30 @@ if [[ $rust_count -gt 0 ]]; then
     rust_size_mb=$((rust_size / 1024))
     echo "🦀 Rust: $rust_count folders (~${rust_size_mb}MB)"
     total_size=$((total_size + rust_size))
+fi
+
+# Count cache directories
+cache_count=0
+cache_size=0
+
+# Build cache directories
+while IFS= read -r -d '' cache_dir; do
+    ((cache_count++))
+    size=$(du -sk "$cache_dir" 2>/dev/null | cut -f1)
+    cache_size=$((cache_size + size))
+done < <(find "$SCAN_DIR" -type d \( -name ".cache" -o -name "dist" -o -name "build" -o -name ".next" -o -name ".nuxt" \) -prune -print0 2>/dev/null)
+
+# Coverage directories
+while IFS= read -r -d '' coverage_dir; do
+    ((cache_count++))
+    size=$(du -sk "$coverage_dir" 2>/dev/null | cut -f1)
+    cache_size=$((cache_size + size))
+done < <(find "$SCAN_DIR" -type d \( -name "coverage" -o -name ".nyc_output" \) -prune -print0 2>/dev/null)
+
+if [[ $cache_count -gt 0 ]]; then
+    cache_size_mb=$((cache_size / 1024))
+    echo "🗂️  Cache/Build: $cache_count folders (~${cache_size_mb}MB)"
+    total_size=$((total_size + cache_size))
 fi
 
 echo ""

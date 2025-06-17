@@ -8,6 +8,7 @@ echo "=================="
 FOUND_CACHE=false
 
 # Clean npm cache in projects
+FOUND_CACHE=false
 while IFS= read -r -d '' PACKAGE_JSON; do
     PROJECT_DIR=$(dirname "$PACKAGE_JSON")
     if [[ -d "$PROJECT_DIR/.npm" ]]; then
@@ -26,16 +27,22 @@ while IFS= read -r -d '' YARN_LOCK; do
 done < <(find "$SCAN_DIR" -name "yarn.lock" -print0 2>/dev/null)
 
 # Clean build cache directories
-while IFS= read -r -d '' BUILD_DIR; do
+BUILD_CACHE_FOUND=$(find "$SCAN_DIR" -type d \( -name ".cache" -o -name "dist" -o -name "build" -o -name ".next" -o -name ".nuxt" \) -prune -print 2>/dev/null | head -1)
+if [[ -n "$BUILD_CACHE_FOUND" ]]; then
     FOUND_CACHE=true
-    safe_delete "$BUILD_DIR" "build cache"
-done < <(find "$SCAN_DIR" -type d -name ".cache" -o -name "dist" -o -name "build" -o -name ".next" -o -name ".nuxt" | head -20 | tr '\n' '\0')
+    while IFS= read -r -d '' BUILD_DIR; do
+        safe_delete "$BUILD_DIR" "build cache"
+    done < <(find "$SCAN_DIR" -type d \( -name ".cache" -o -name "dist" -o -name "build" -o -name ".next" -o -name ".nuxt" \) -prune -print0 2>/dev/null)
+fi
 
-# Clean coverage directories
-while IFS= read -r -d '' COVERAGE_DIR; do
+# Clean coverage directories  
+COVERAGE_FOUND=$(find "$SCAN_DIR" -type d \( -name "coverage" -o -name ".nyc_output" \) -prune -print 2>/dev/null | head -1)
+if [[ -n "$COVERAGE_FOUND" ]]; then
     FOUND_CACHE=true
-    safe_delete "$COVERAGE_DIR" "coverage directory"
-done < <(find "$SCAN_DIR" -type d -name "coverage" -o -name ".nyc_output" | head -10 | tr '\n' '\0')
+    while IFS= read -r -d '' COVERAGE_DIR; do
+        safe_delete "$COVERAGE_DIR" "coverage directory"
+    done < <(find "$SCAN_DIR" -type d \( -name "coverage" -o -name ".nyc_output" \) -prune -print0 2>/dev/null)
+fi
 
 if [ "$FOUND_CACHE" = false ]; then
     echo "ℹ️  No cache directories found."
