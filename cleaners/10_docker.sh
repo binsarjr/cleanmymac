@@ -24,39 +24,57 @@ DOCKER_CLEANED=false
 # Clean up stopped containers
 STOPPED_CONTAINERS=$(docker ps -aq --filter status=exited 2>/dev/null)
 if [ ! -z "$STOPPED_CONTAINERS" ]; then
-    echo "Removing stopped containers..."
-    docker rm $STOPPED_CONTAINERS &
-    loading_animation $!
-    wait
-    echo "✅ Removed stopped containers"
     DOCKER_CLEANED=true
+    if [[ "$DRY_RUN" == "true" ]]; then
+        container_count=$(echo "$STOPPED_CONTAINERS" | wc -l | tr -d ' ')
+        echo "🔍 Would remove $container_count stopped containers"
+    else
+        echo "Removing stopped containers..."
+        docker rm $STOPPED_CONTAINERS &
+        loading_animation $!
+        wait
+        echo "✅ Removed stopped containers"
+    fi
 fi
 
 # Clean up dangling images
 DANGLING_IMAGES=$(docker images -qf dangling=true 2>/dev/null)
 if [ ! -z "$DANGLING_IMAGES" ]; then
-    echo "Removing dangling images..."
-    docker rmi $DANGLING_IMAGES &
-    loading_animation $!
-    wait
-    echo "✅ Removed dangling images"
     DOCKER_CLEANED=true
+    if [[ "$DRY_RUN" == "true" ]]; then
+        image_count=$(echo "$DANGLING_IMAGES" | wc -l | tr -d ' ')
+        echo "🔍 Would remove $image_count dangling images"
+    else
+        echo "Removing dangling images..."
+        docker rmi $DANGLING_IMAGES &
+        loading_animation $!
+        wait
+        echo "✅ Removed dangling images"
+    fi
 fi
 
 # Clean up unused networks
-echo "Removing unused networks..."
-docker network prune -f &
-loading_animation $!
-wait
-echo "✅ Cleaned unused networks"
+if [[ "$DRY_RUN" == "true" ]]; then
+    echo "🔍 Would clean unused networks"
+else
+    echo "Removing unused networks..."
+    docker network prune -f &
+    loading_animation $!
+    wait
+    echo "✅ Cleaned unused networks"
+fi
 DOCKER_CLEANED=true
 
 # Clean up unused volumes
-echo "Removing unused volumes..."
-docker volume prune -f &
-loading_animation $!
-wait
-echo "✅ Cleaned unused volumes"
+if [[ "$DRY_RUN" == "true" ]]; then
+    echo "🔍 Would clean unused volumes"
+else
+    echo "Removing unused volumes..."
+    docker volume prune -f &
+    loading_animation $!
+    wait
+    echo "✅ Cleaned unused volumes"
+fi
 DOCKER_CLEANED=true
 
 if [ "$DOCKER_CLEANED" = false ]; then

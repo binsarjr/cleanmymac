@@ -5,19 +5,17 @@
 echo "🔴 Yarn Cleanup"
 echo "==============="
 
-# Mencari dan menghapus folder node_modules yang menggunakan yarn
-YARN_COUNT=0
-find "$SCAN_DIR" -name "yarn.lock" | while read -r YARN_LOCK; do
+# Mencari dan menghapus folder node_modules yang menggunakan yarn (ada yarn.lock)
+FOUND_YARN=false
+while IFS= read -r -d '' YARN_LOCK; do
     PROJECT_DIR=$(dirname "$YARN_LOCK")
     if [[ -d "$PROJECT_DIR/node_modules" ]]; then
-        echo "Deleting Yarn node_modules: $PROJECT_DIR/node_modules"
-        (rm -rf "$PROJECT_DIR/node_modules" & loading_animation $!)
-        echo "✅ Deleted: $PROJECT_DIR/node_modules"
-        ((YARN_COUNT++))
+        FOUND_YARN=true
+        safe_delete "$PROJECT_DIR/node_modules" "Yarn node_modules"
     fi
-done
+done < <(find "$SCAN_DIR" -name "yarn.lock" -print0 2>/dev/null)
 
-if [ $YARN_COUNT -eq 0 ]; then
+if [ "$FOUND_YARN" = false ]; then
     echo "ℹ️  No Yarn projects found."
 fi
 

@@ -20,10 +20,19 @@ echo "=================================="
 
 total_size=0
 
-# Count node_modules
-node_modules_count=$(find "$SCAN_DIR" -type d -name "node_modules" 2>/dev/null | wc -l)
+# Count node_modules (only with package.json)
+node_modules_count=0
+node_modules_size=0
+while IFS= read -r -d '' node_modules_dir; do
+    parent_dir=$(dirname "$node_modules_dir")
+    if [[ -f "$parent_dir/package.json" ]]; then
+        ((node_modules_count++))
+        size=$(du -sk "$node_modules_dir" 2>/dev/null | cut -f1)
+        node_modules_size=$((node_modules_size + size))
+    fi
+done < <(find "$SCAN_DIR" -type d -name "node_modules" -prune -print0 2>/dev/null)
+
 if [[ $node_modules_count -gt 0 ]]; then
-    node_modules_size=$(find "$SCAN_DIR" -type d -name "node_modules" -exec du -sk {} + 2>/dev/null | awk '{sum+=$1} END {print sum}')
     node_modules_size_mb=$((node_modules_size / 1024))
     echo "📦 Node.js: $node_modules_count folders (~${node_modules_size_mb}MB)"
     total_size=$((total_size + node_modules_size))

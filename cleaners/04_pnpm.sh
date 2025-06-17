@@ -11,11 +11,7 @@ while IFS= read -r -d '' PNPM_LOCK; do
     PROJECT_DIR=$(dirname "$PNPM_LOCK")
     if [[ -d "$PROJECT_DIR/node_modules" ]]; then
         FOUND_PNPM=true
-        echo "Deleting PNPM node_modules: $PROJECT_DIR/node_modules"
-        rm -rf "$PROJECT_DIR/node_modules" &
-        loading_animation $!
-        wait
-        echo "✅ Deleted: $PROJECT_DIR/node_modules"
+        safe_delete "$PROJECT_DIR/node_modules" "PNPM node_modules"
     fi
 done < <(find "$SCAN_DIR" -name "pnpm-lock.yaml" -print0 2>/dev/null)
 
