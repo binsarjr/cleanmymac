@@ -93,12 +93,12 @@ fi
 cache_count=0
 cache_size=0
 
-# Build cache directories
+# Build cache directories (khusus cache framework, bukan dist/build output)
 while IFS= read -r -d '' cache_dir; do
     ((cache_count++))
     size=$(du -sk "$cache_dir" 2>/dev/null | cut -f1)
     cache_size=$((cache_size + size))
-done < <(find "$SCAN_DIR" -type d \( -name ".cache" -o -name "dist" -o -name "build" -o -name ".next" -o -name ".nuxt" \) -prune -print0 2>/dev/null)
+done < <(find "$SCAN_DIR" -type d \( -name ".cache" -o -name ".next" -o -name ".nuxt" -o -name ".svelte-kit" -o -name ".vite" \) -prune -print0 2>/dev/null)
 
 # Coverage directories
 while IFS= read -r -d '' coverage_dir; do

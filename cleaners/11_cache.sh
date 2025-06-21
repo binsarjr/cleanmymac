@@ -26,13 +26,13 @@ while IFS= read -r -d '' YARN_LOCK; do
     fi
 done < <(find "$SCAN_DIR" -name "yarn.lock" -print0 2>/dev/null)
 
-# Clean build cache directories
-BUILD_CACHE_FOUND=$(find "$SCAN_DIR" -type d \( -name ".cache" -o -name "dist" -o -name "build" -o -name ".next" -o -name ".nuxt" \) -prune -print 2>/dev/null | head -1)
+# Clean build cache directories (khusus cache framework, bukan dist/build output)
+BUILD_CACHE_FOUND=$(find "$SCAN_DIR" -type d \( -name ".cache" -o -name ".next" -o -name ".nuxt" -o -name ".svelte-kit" -o -name ".vite" \) -prune -print 2>/dev/null | head -1)
 if [[ -n "$BUILD_CACHE_FOUND" ]]; then
     FOUND_CACHE=true
     while IFS= read -r -d '' BUILD_DIR; do
-        safe_delete "$BUILD_DIR" "build cache"
-    done < <(find "$SCAN_DIR" -type d \( -name ".cache" -o -name "dist" -o -name "build" -o -name ".next" -o -name ".nuxt" \) -prune -print0 2>/dev/null)
+        safe_delete "$BUILD_DIR" "framework cache"
+    done < <(find "$SCAN_DIR" -type d \( -name ".cache" -o -name ".next" -o -name ".nuxt" -o -name ".svelte-kit" -o -name ".vite" \) -prune -print0 2>/dev/null)
 fi
 
 # Clean coverage directories  
